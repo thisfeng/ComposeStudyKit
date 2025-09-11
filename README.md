@@ -84,14 +84,5 @@ app/src/main/java/com/thisfeng/composestudykit/
 └── utils/                # 工具类
 ```
 
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 开源协议
-
-MIT License
-
----
 
 ⭐ 如果这个项目对您有帮助，请给个 Star 支持一下！

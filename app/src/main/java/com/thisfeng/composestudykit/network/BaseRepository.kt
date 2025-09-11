@@ -1,11 +1,10 @@
 package com.thisfeng.composestudykit.network
 
+import com.squareup.moshi.JsonAdapter
 import com.thisfeng.composestudykit.cache.CacheConfig
 import com.thisfeng.composestudykit.cache.CacheResult
 import com.thisfeng.composestudykit.cache.CacheStrategy
 import com.thisfeng.composestudykit.cache.DataStoreCacheManager
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -20,8 +19,6 @@ abstract class BaseRepository {
     
     // 子类需要提供 DataStore 缓存管理器
     protected abstract val dataStoreCacheManager: DataStoreCacheManager?
-    
-    private val moshi = Moshi.Builder().build()
     
     /**
      * 带 DataStore 缓存策略的安全API调用
@@ -151,6 +148,8 @@ abstract class BaseRepository {
         }
     }.flowOn(Dispatchers.IO)
     
+
+    
     /**
      * 执行网络请求的私有方法
      */
@@ -160,18 +159,8 @@ abstract class BaseRepository {
         return try {
             val response = apiCall()
             response.toApiResult()
-        } catch (e: NetworkException) {
-            when (e) {
-                is NetworkException.UnauthorizedException -> ApiResult.Error(401, e.message ?: "未授权")
-                is NetworkException.ForbiddenException -> ApiResult.Error(403, e.message ?: "访问被拒绝")
-                is NetworkException.NotFoundException -> ApiResult.Error(404, e.message ?: "资源不存在")
-                is NetworkException.ServerException -> ApiResult.Error(500, e.message ?: "服务器错误")
-                is NetworkException.HttpException -> ApiResult.Error(e.code, e.message ?: "HTTP错误")
-                is NetworkException.NetworkConnectionException -> ApiResult.Exception(e)
-                else -> ApiResult.Exception(e)
-            }
         } catch (e: Exception) {
-            ApiResult.Exception(e)
+            handleNetworkException(e)
         }
     }
     
@@ -205,20 +194,8 @@ abstract class BaseRepository {
             try {
                 val response = apiCall()
                 response.toApiResult()
-            } catch (e: NetworkException) {
-                // 网络相关的自定义异常
-                when (e) {
-                    is NetworkException.UnauthorizedException -> ApiResult.Error(401, e.message ?: "未授权")
-                    is NetworkException.ForbiddenException -> ApiResult.Error(403, e.message ?: "访问被拒绝")
-                    is NetworkException.NotFoundException -> ApiResult.Error(404, e.message ?: "资源不存在")
-                    is NetworkException.ServerException -> ApiResult.Error(500, e.message ?: "服务器错误")
-                    is NetworkException.HttpException -> ApiResult.Error(e.code, e.message ?: "HTTP错误")
-                    is NetworkException.NetworkConnectionException -> ApiResult.Exception(e)
-                    else -> ApiResult.Exception(e)
-                }
             } catch (e: Exception) {
-                // 其他异常
-                ApiResult.Exception(e)
+                handleNetworkException(e)
             }
         }
     }
@@ -236,20 +213,37 @@ abstract class BaseRepository {
             try {
                 val response = apiCall()
                 response.toRawApiResult()
-            } catch (e: NetworkException) {
-                // 网络相关的自定义异常
-                when (e) {
-                    is NetworkException.UnauthorizedException -> ApiResult.Error(401, e.message ?: "未授权")
-                    is NetworkException.ForbiddenException -> ApiResult.Error(403, e.message ?: "访问被拒绝")
-                    is NetworkException.NotFoundException -> ApiResult.Error(404, e.message ?: "资源不存在")
-                    is NetworkException.ServerException -> ApiResult.Error(500, e.message ?: "服务器错误")
-                    is NetworkException.HttpException -> ApiResult.Error(e.code, e.message ?: "HTTP错误")
-                    is NetworkException.NetworkConnectionException -> ApiResult.Exception(e)
-                    else -> ApiResult.Exception(e)
-                }
             } catch (e: Exception) {
+                handleNetworkException(e)
+            }
+        }
+    }
+
+    /**
+     * 通用异常处理方法
+     * 统一处理所有网络请求的异常情况
+     */
+    private inline fun <T> handleNetworkException(exception: Throwable): ApiResult<T> {
+        return when (exception) {
+            is java.net.UnknownHostException -> {
+                // DNS解析失败或无网络连接
+                ApiResult.Exception(exception, "无法连接到服务器，请检查网络连接")
+            }
+            is java.net.SocketTimeoutException -> {
+                // 连接超时
+                ApiResult.Exception(exception, "网络连接超时，请稍后重试")
+            }
+            is java.net.ConnectException -> {
+                // 连接被拒绝
+                ApiResult.Exception(exception, "无法连接到服务器，请检查网络连接")
+            }
+            is java.io.IOException -> {
+                // IO异常，通常是网络问题
+                ApiResult.Exception(exception, "网络连接出现问题，请检查网络设置")
+            }
+            else -> {
                 // 其他异常
-                ApiResult.Exception(e)
+                ApiResult.Exception(exception, "请求处理失败：${exception.message ?: "未知错误"}")
             }
         }
     }

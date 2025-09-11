@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 // DataStore 扩展属性
+//这里将 Context.apiCacheDataStore 扩展属性定义为 private val，是为了让整个文件中的类（如 DataStoreCacheManager）都能方便地复用同一个 DataStore 实例，并且避免重复创建。
+//如果你把它放到 DataStoreCacheManager 类里面，每次创建 DataStoreCacheManager 实例时，都会重新初始化 DataStore，这样会浪费资源。官方推荐 DataStore 实例全局唯一，避免多次创建。
+//所以，放在文件顶层（伴随 Context 扩展）是最佳实践。如果你确实只在某个类内部用，也可以放到类里，但一般不建议这样做。
 private val Context.apiCacheDataStore: DataStore<Preferences> by preferencesDataStore(name = "api_cache")
 
 /**
@@ -24,10 +27,9 @@ private val Context.apiCacheDataStore: DataStore<Preferences> by preferencesData
  * 5. 更好的错误处理
  */
 class DataStoreCacheManager(private val context: Context) {
-    
+
     private val dataStore = context.apiCacheDataStore
-    private val moshi = Moshi.Builder().build()
-    
+
     /**
      * 异步缓存数据
      */
@@ -40,7 +42,7 @@ class DataStoreCacheManager(private val context: Context) {
             e.printStackTrace()
         }
     }
-    
+
     /**
      * 异步获取缓存数据
      */
@@ -54,7 +56,7 @@ class DataStoreCacheManager(private val context: Context) {
             null
         }
     }
-    
+
     /**
      * 获取缓存数据的 Flow
      */
@@ -68,7 +70,7 @@ class DataStoreCacheManager(private val context: Context) {
             }
         }
     }
-    
+
     /**
      * 删除指定缓存
      */
@@ -81,7 +83,7 @@ class DataStoreCacheManager(private val context: Context) {
             e.printStackTrace()
         }
     }
-    
+
     /**
      * 清空所有缓存
      */
@@ -94,7 +96,7 @@ class DataStoreCacheManager(private val context: Context) {
             e.printStackTrace()
         }
     }
-    
+
     /**
      * 检查缓存是否存在
      */
@@ -108,7 +110,7 @@ class DataStoreCacheManager(private val context: Context) {
             false
         }
     }
-    
+
     /**
      * 获取缓存统计信息
      */
@@ -117,7 +119,7 @@ class DataStoreCacheManager(private val context: Context) {
             val allKeys = dataStore.data.map { preferences ->
                 preferences.asMap().keys.map { it.name }
             }.first()
-            
+
             var totalSize = 0
             for (key in allKeys) {
                 val data = getCachedData(key)
@@ -125,7 +127,7 @@ class DataStoreCacheManager(private val context: Context) {
                     totalSize += data.length
                 }
             }
-            
+
             CacheStats(
                 totalKeys = allKeys.size,
                 validCount = allKeys.size,
@@ -136,17 +138,17 @@ class DataStoreCacheManager(private val context: Context) {
             CacheStats(0, 0, 0, 0)
         }
     }
-    
+
     companion object {
         // 默认缓存时间：5分钟
         const val DEFAULT_EXPIRE_TIME = 5 * 60 * 1000L
-        
+
         // 缓存时间常量
         const val CACHE_5_MINUTES = 5 * 60 * 1000L
         const val CACHE_30_MINUTES = 30 * 60 * 1000L
         const val CACHE_1_HOUR = 60 * 60 * 1000L
         const val CACHE_1_DAY = 24 * 60 * 60 * 1000L
-        
+
         // 缓存键常量
         const val CACHE_KEY_BANNERS = "cache_banners"
         const val CACHE_KEY_ARTICLES = "cache_articles_"

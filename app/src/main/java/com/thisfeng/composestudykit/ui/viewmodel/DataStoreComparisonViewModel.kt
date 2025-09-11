@@ -113,7 +113,7 @@ class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             _operationStatus.value = "测试并发性能..."
             
-            val jobs = (1..20).map { index ->
+            val jobs = (1..120).map { index ->
                 launch {
                     val data = "concurrent_data_$index"
                     dataStoreManager.cacheData("concurrent_$index", data)
@@ -124,7 +124,7 @@ class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
             jobs.forEach { it.join() }
             
             refreshDataStoreStats()
-            _operationStatus.value = "并发测试完成！共处理 20 个并发操作"
+            _operationStatus.value = "并发测试完成！共处理 120 个并发操作"
         }
     }
     

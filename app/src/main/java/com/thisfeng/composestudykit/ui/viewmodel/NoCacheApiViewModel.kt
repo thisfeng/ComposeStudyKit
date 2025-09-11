@@ -1,5 +1,6 @@
 package com.thisfeng.composestudykit.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thisfeng.composestudykit.data.model.Article
@@ -7,6 +8,7 @@ import com.thisfeng.composestudykit.data.model.Banner
 import com.thisfeng.composestudykit.data.repository.WanAndroidRepository
 import com.thisfeng.composestudykit.network.ApiResult
 import com.thisfeng.composestudykit.utils.AppGlobals
+import com.thisfeng.composestudykit.utils.ToastUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * 不带缓存的 API 测试 ViewModel
- * 
+ *
  * 🎯 核心特性：
  * 1. 不使用缓存，直接网络请求
  * 2. 独立并发请求，单个失败不影响其他
@@ -27,6 +29,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 class NoCacheApiViewModel : ViewModel() {
 
     private val repository = WanAndroidRepository(AppGlobals.getApplication())
+    private val context: Context = AppGlobals.getApplication()
 
     // UI 状态 - 每个数据源独立管理
     private val _uiState = MutableStateFlow(NoCacheUiState())
@@ -39,12 +42,14 @@ class NoCacheApiViewModel : ViewModel() {
     // 异常处理器
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         updatePerformanceStats { it.copy(unexpectedErrors = it.unexpectedErrors + 1) }
-        println("❌ 协程异常: ${throwable.message}")
+        // 显示 Toast 提示
+        ToastUtils.showLong(context, "网络连接失败，请检查网络设置后重试")
+        println("❌ 协程异常: ${'$'}{throwable.message}")
     }
 
     /**
      * 🚀 独立并发加载 - 先到先显示策略
-     * 
+     *
      * 特点：
      * - 三个请求完全独立，不互相阻塞
      * - 每个请求有独立的超时控制
@@ -54,7 +59,7 @@ class NoCacheApiViewModel : ViewModel() {
     fun loadDataIndependently() {
         // 重置状态
         resetState()
-        
+
         val startTime = System.currentTimeMillis()
         updatePerformanceStats { it.copy(totalStartTime = startTime) }
 
@@ -82,10 +87,10 @@ class NoCacheApiViewModel : ViewModel() {
      */
     private suspend fun loadBannerIndependently() {
         val startTime = System.currentTimeMillis()
-        
+
         // 设置加载状态
-        updateUiState { 
-            it.copy(bannerState = RequestState.Loading("开始加载 Banner...")) 
+        updateUiState {
+            it.copy(bannerState = RequestState.Loading("开始加载 Banner..."))
         }
 
         // 带超时的网络请求
@@ -105,50 +110,56 @@ class NoCacheApiViewModel : ViewModel() {
                         bannerCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         bannerDuration = duration,
                         bannerSuccess = true,
                         successfulRequests = it.successfulRequests + 1
-                    ) 
+                    )
                 }
                 println("✅ Banner 加载完成，耗时: ${duration}ms，数据量: ${result.data.size}")
             }
-            
+
             is ApiResult.Error -> {
                 updateUiState {
                     it.copy(
-                        bannerState = RequestState.Error("Banner 加载失败: ${result.message}", duration),
+                        bannerState = RequestState.Error(
+                            "Banner 加载失败: ${result.message}",
+                            duration
+                        ),
                         bannerCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         bannerDuration = duration,
                         bannerSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ Banner 加载失败: ${result.message}，耗时: ${duration}ms")
             }
-            
+
             is ApiResult.Exception -> {
+                // 使用改进后的异常处理，显示友好的 Toast 提示
+                val errorMessage = result.message
+                ToastUtils.showLong(context, errorMessage)
                 updateUiState {
                     it.copy(
-                        bannerState = RequestState.Error("Banner 异常: ${result.exception.message}", duration),
+                        bannerState = RequestState.Error("Banner 异常: $errorMessage", duration),
                         bannerCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         bannerDuration = duration,
                         bannerSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ Banner 异常: ${result.exception.message}，耗时: ${duration}ms")
             }
-            
+
             null -> {
                 // 超时情况
                 updateUiState {
@@ -157,16 +168,16 @@ class NoCacheApiViewModel : ViewModel() {
                         bannerCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         bannerDuration = duration,
                         bannerSuccess = false,
                         timeoutRequests = it.timeoutRequests + 1
-                    ) 
+                    )
                 }
                 println("⏰ Banner 请求超时，耗时: ${duration}ms")
             }
-            
+
             else -> {
                 updateUiState {
                     it.copy(
@@ -184,9 +195,9 @@ class NoCacheApiViewModel : ViewModel() {
      */
     private suspend fun loadArticlesIndependently() {
         val startTime = System.currentTimeMillis()
-        
-        updateUiState { 
-            it.copy(articleState = RequestState.Loading("开始加载文章列表...")) 
+
+        updateUiState {
+            it.copy(articleState = RequestState.Loading("开始加载文章列表..."))
         }
 
         val result = withTimeoutOrNull(15_000) { // 15秒超时
@@ -205,50 +216,56 @@ class NoCacheApiViewModel : ViewModel() {
                         articleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         articleDuration = duration,
                         articleSuccess = true,
                         successfulRequests = it.successfulRequests + 1
-                    ) 
+                    )
                 }
                 println("✅ 文章列表加载完成，耗时: ${duration}ms，数据量: ${result.data.datas.size}")
             }
-            
+
             is ApiResult.Error -> {
                 updateUiState {
                     it.copy(
-                        articleState = RequestState.Error("文章列表加载失败: ${result.message}", duration),
+                        articleState = RequestState.Error(
+                            "文章列表加载失败: ${result.message}",
+                            duration
+                        ),
                         articleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         articleDuration = duration,
                         articleSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ 文章列表加载失败: ${result.message}，耗时: ${duration}ms")
             }
-            
+
             is ApiResult.Exception -> {
+                // 使用改进后的异常处理，显示友好的 Toast 提示
+                val errorMessage = result.message
+                ToastUtils.showLong(context, errorMessage)
                 updateUiState {
                     it.copy(
-                        articleState = RequestState.Error("文章列表异常: ${result.exception.message}", duration),
+                        articleState = RequestState.Error("文章列表异常: $errorMessage", duration),
                         articleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         articleDuration = duration,
                         articleSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ 文章列表异常: ${result.exception.message}，耗时: ${duration}ms")
             }
-            
+
             null -> {
                 updateUiState {
                     it.copy(
@@ -256,16 +273,16 @@ class NoCacheApiViewModel : ViewModel() {
                         articleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         articleDuration = duration,
                         articleSuccess = false,
                         timeoutRequests = it.timeoutRequests + 1
-                    ) 
+                    )
                 }
                 println("⏰ 文章列表请求超时，耗时: ${duration}ms")
             }
-            
+
             else -> {
                 updateUiState {
                     it.copy(
@@ -283,14 +300,17 @@ class NoCacheApiViewModel : ViewModel() {
      */
     private suspend fun loadTopArticlesIndependently() {
         val startTime = System.currentTimeMillis()
-        
-        updateUiState { 
-            it.copy(topArticleState = RequestState.Loading("开始加载置顶文章...")) 
+
+        updateUiState {
+            it.copy(topArticleState = RequestState.Loading("开始加载置顶文章..."))
         }
 
-        val result = withTimeoutOrNull(12_000) { // 12秒超时
-            repository.getTopArticlesDirectly()
-        }
+        /*  val result = withTimeoutOrNull(12_000) { // 12秒超时
+              repository.getTopArticlesDirectly()
+          }    */
+
+        val result = repository.getTopArticlesDirectly()
+
 
         val endTime = System.currentTimeMillis()
         val duration = endTime - startTime
@@ -304,50 +324,59 @@ class NoCacheApiViewModel : ViewModel() {
                         topArticleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         topArticleDuration = duration,
                         topArticleSuccess = true,
                         successfulRequests = it.successfulRequests + 1
-                    ) 
+                    )
                 }
                 println("✅ 置顶文章加载完成，耗时: ${duration}ms，数据量: ${result.data.size}")
             }
-            
+
             is ApiResult.Error -> {
                 updateUiState {
                     it.copy(
-                        topArticleState = RequestState.Error("置顶文章加载失败: ${result.message}", duration),
+                        topArticleState = RequestState.Error(
+                            "置顶文章加载失败: ${result.message}",
+                            duration
+                        ),
                         topArticleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         topArticleDuration = duration,
                         topArticleSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ 置顶文章加载失败: ${result.message}，耗时: ${duration}ms")
             }
-            
+
             is ApiResult.Exception -> {
+                // 使用改进后的异常处理，显示友好的 Toast 提示
+                val errorMessage = result.message
+                ToastUtils.showLong(context, errorMessage)
                 updateUiState {
                     it.copy(
-                        topArticleState = RequestState.Error("置顶文章异常: ${result.exception.message}", duration),
+                        topArticleState = RequestState.Error(
+                            "置顶文章异常: $errorMessage",
+                            duration
+                        ),
                         topArticleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         topArticleDuration = duration,
                         topArticleSuccess = false,
                         failedRequests = it.failedRequests + 1
-                    ) 
+                    )
                 }
                 println("❌ 置顶文章异常: ${result.exception.message}，耗时: ${duration}ms")
             }
-            
+
             null -> {
                 updateUiState {
                     it.copy(
@@ -355,16 +384,16 @@ class NoCacheApiViewModel : ViewModel() {
                         topArticleCompletedAt = endTime
                     )
                 }
-                updatePerformanceStats { 
+                updatePerformanceStats {
                     it.copy(
                         topArticleDuration = duration,
                         topArticleSuccess = false,
                         timeoutRequests = it.timeoutRequests + 1
-                    ) 
+                    )
                 }
                 println("⏰ 置顶文章请求超时，耗时: ${duration}ms")
             }
-            
+
             else -> {
                 updateUiState {
                     it.copy(
@@ -406,7 +435,7 @@ class NoCacheApiViewModel : ViewModel() {
     fun getCompletionOrder(): List<String> {
         val state = _uiState.value
         val completions = mutableListOf<Pair<String, Long>>()
-        
+
         if (state.bannerCompletedAt > 0) {
             completions.add("Banner" to state.bannerCompletedAt)
         }
@@ -416,7 +445,7 @@ class NoCacheApiViewModel : ViewModel() {
         if (state.topArticleCompletedAt > 0) {
             completions.add("置顶文章" to state.topArticleCompletedAt)
         }
-        
+
         return completions.sortedBy { it.second }.map { it.first }
     }
 }
@@ -429,12 +458,12 @@ data class NoCacheUiState(
     val banners: List<Banner> = emptyList(),
     val articles: List<Article> = emptyList(),
     val topArticles: List<Article> = emptyList(),
-    
+
     // 各请求的状态
     val bannerState: RequestState = RequestState.Initial,
     val articleState: RequestState = RequestState.Initial,
     val topArticleState: RequestState = RequestState.Initial,
-    
+
     // 完成时间戳（用于分析完成顺序）
     val bannerCompletedAt: Long = 0,
     val articleCompletedAt: Long = 0,
@@ -456,17 +485,17 @@ sealed class RequestState {
  */
 data class PerformanceStats(
     val totalStartTime: Long = 0,
-    
+
     // 各接口耗时
     val bannerDuration: Long = 0,
     val articleDuration: Long = 0,
     val topArticleDuration: Long = 0,
-    
+
     // 各接口成功状态
     val bannerSuccess: Boolean = false,
     val articleSuccess: Boolean = false,
     val topArticleSuccess: Boolean = false,
-    
+
     // 统计计数
     val successfulRequests: Int = 0,
     val failedRequests: Int = 0,

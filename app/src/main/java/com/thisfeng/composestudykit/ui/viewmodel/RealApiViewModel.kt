@@ -9,6 +9,7 @@ import com.thisfeng.composestudykit.cache.getData
 import com.thisfeng.composestudykit.data.model.Article
 import com.thisfeng.composestudykit.data.model.Banner
 import com.thisfeng.composestudykit.data.repository.WanAndroidRepository
+import com.thisfeng.composestudykit.utils.ToastUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -145,10 +146,13 @@ class RealApiViewModel(private val context: Context) : ViewModel() {
                 }
 
                 is CacheResult.Failed -> {
+                    // 显示友好的错误提示
+                    val errorMessage = "网络连接失败，请检查网络设置后重试"
+                    ToastUtils.showLong(context.applicationContext, errorMessage)
                     updateUiState {
                         it.copy(
                             bannerState = DataState.Error("Banner加载失败"),
-                            errorMessage = "Banner加载失败"
+                            errorMessage = errorMessage
                         )
                     }
                 }
@@ -196,10 +200,13 @@ class RealApiViewModel(private val context: Context) : ViewModel() {
                 }
 
                 is CacheResult.Failed -> {
+                    // 显示友好的错误提示
+                    val errorMessage = "网络连接失败，请检查网络设置后重试"
+                    ToastUtils.showLong(context.applicationContext, errorMessage)
                     updateUiState {
                         it.copy(
                             articleState = DataState.Error("文章列表加载失败"),
-                            errorMessage = "文章列表加载失败"
+                            errorMessage = errorMessage
                         )
                     }
                 }
@@ -243,10 +250,13 @@ class RealApiViewModel(private val context: Context) : ViewModel() {
                 }
 
                 is CacheResult.Failed -> {
+                    // 显示友好的错误提示
+                    val errorMessage = "网络连接失败，请检查网络设置后重试"
+                    ToastUtils.showLong(context.applicationContext, errorMessage)
                     updateUiState {
                         it.copy(
                             topArticleState = DataState.Error("置顶文章加载失败"),
-                            errorMessage = "置顶文章加载失败"
+                            errorMessage = errorMessage
                         )
                     }
                 }

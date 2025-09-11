@@ -11,24 +11,26 @@ sealed class ApiResult<out T> {
      * @param msg 提示信息（如"操作成功"，可选）
      */
     data class Success<out T>(val data: T, val msg: String = "") : ApiResult<T>()
-    
+
     /**
      * 业务错误状态：后端返回的业务逻辑错误
      * @param code 错误码
      * @param message 错误信息
      */
     data class Error(val code: Int, val message: String) : ApiResult<Nothing>()
-    
+
     /**
      * 网络异常状态：网络连接、超时等异常
      * @param exception 异常对象
+     * @param message 友好的错误提示信息
      */
-    data class Exception(val exception: Throwable) : ApiResult<Nothing>()
-    
+    data class Exception(val exception: Throwable, val message: String = "网络异常") : ApiResult<Nothing>()
+
     /**
      * 加载中状态
      */
     data object Loading : ApiResult<Nothing>()
+
 }
 
 /**
@@ -65,10 +67,18 @@ inline fun <T> ApiResult<T>.getOrNull(): T? = when (this) {
 
 /**
  * 获取错误信息，适用于 Error 和 Exception 状态
+ * 优先返回友好的错误信息，避免返回原始异常信息
  */
 inline fun <T> ApiResult<T>.getErrorMessage(): String = when (this) {
     is ApiResult.Error -> message
-    is ApiResult.Exception -> exception.message ?: "Unknown error"
+    is ApiResult.Exception -> {
+        // 优先返回友好的 message，如果为空则返回原始异常信息
+        if (message.isNotBlank() && message != "网络异常") {
+            message
+        } else {
+            exception.message ?: "未知网络错误"
+        }
+    }
     else -> ""
 }
 
@@ -110,4 +120,62 @@ inline fun <T> ApiResult<T>.onException(action: (Throwable) -> Unit): ApiResult<
         action(exception)
     }
     return this
+}
+
+/**
+ * 只有异常时才执行指定操作（带错误信息）
+ */
+inline fun <T> ApiResult<T>.onException(action: (Throwable, String) -> Unit): ApiResult<T> {
+    if (this is ApiResult.Exception) {
+        action(exception, message)
+    }
+    return this
+}
+
+/**
+ * 获取异常的详细信息，包括异常类型和原因
+ */
+fun <T> ApiResult<T>.getExceptionDetails(): String? = when (this) {
+    is ApiResult.Exception -> {
+        val exceptionType = exception::class.simpleName ?: "UnknownException"
+        val friendlyMessage = if (message.isNotBlank() && message != "网络异常") message else null
+        val originalMessage = exception.message
+        
+        buildString {
+            if (friendlyMessage != null) {
+                append(friendlyMessage)
+            }
+            if (originalMessage != null && originalMessage != friendlyMessage) {
+                if (isNotEmpty()) append(" (原因: ")
+                append(originalMessage)
+                if (friendlyMessage != null) append(")")
+            }
+            if (isEmpty()) {
+                append("未知网络错误 (类型: $exceptionType)")
+            }
+        }
+    }
+    else -> null
+}
+
+/**
+ * 判断是否为网络连接异常
+ */
+fun <T> ApiResult<T>.isNetworkConnectionException(): Boolean = when (this) {
+    is ApiResult.Exception -> {
+        exception is java.net.UnknownHostException ||
+        exception is java.net.ConnectException ||
+        exception is java.io.IOException
+    }
+    else -> false
+}
+
+/**
+ * 判断是否为超时异常
+ */
+fun <T> ApiResult<T>.isTimeoutException(): Boolean = when (this) {
+    is ApiResult.Exception -> {
+        exception is java.net.SocketTimeoutException
+    }
+    else -> false
 }

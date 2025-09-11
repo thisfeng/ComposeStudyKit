@@ -14,53 +14,53 @@ import kotlinx.coroutines.launch
  * DataStore 对比演示 ViewModel
  * 展示 DataStore 与 SharedPreferences 的性能差异和使用体验
  */
-class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
-    
+class DataStoreComparisonViewModel(context: Context) : ViewModel() {
+
     // DataStore 仓库
     private val dataStoreManager = DataStoreCacheManager(context)
-    
+
     // DataStore 统计信息
     private val _dataStoreStats = MutableStateFlow<CacheStats?>(null)
     val dataStoreStats: StateFlow<CacheStats?> = _dataStoreStats.asStateFlow()
-    
+
     // 操作状态
     private val _operationStatus = MutableStateFlow("")
     val operationStatus: StateFlow<String> = _operationStatus.asStateFlow()
-    
+
     // 测试数据
     private val _testData = MutableStateFlow<String?>(null)
     val testData: StateFlow<String?> = _testData.asStateFlow()
-    
+
     init {
         refreshDataStoreStats()
     }
-    
+
     /**
      * 测试 DataStore 写入数据
      */
     fun testDataStoreWrite() {
         viewModelScope.launch {
             _operationStatus.value = "正在测试 DataStore 写入..."
-            
+
             val testJsonData = """{
                 "message": "这是一个 DataStore 测试数据",
                 "timestamp": ${System.currentTimeMillis()},
                 "type": "test"
             }"""
-            
+
             dataStoreManager.cacheData("test_key", testJsonData)
             refreshDataStoreStats()
             _operationStatus.value = "DataStore 写入成功！"
         }
     }
-    
+
     /**
      * 测试 DataStore 读取数据
      */
     fun testDataStoreRead() {
         viewModelScope.launch {
             _operationStatus.value = "正在测试 DataStore 读取..."
-            
+
             val data = dataStoreManager.getCachedData("test_key")
             _testData.value = data
             _operationStatus.value = if (data != null) {
@@ -70,7 +70,7 @@ class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
-    
+
     /**
      * 清空所有缓存
      */
@@ -83,14 +83,14 @@ class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
             _operationStatus.value = "缓存已清空"
         }
     }
-    
+
     /**
      * 测试批量写入
      */
     fun testBatchWrite() {
         viewModelScope.launch {
             _operationStatus.value = "正在测试批量写入..."
-            
+
             repeat(10) { index ->
                 val data = """{
                     "id": $index,
@@ -100,34 +100,34 @@ class DataStoreComparisonViewModel(private val context: Context) : ViewModel() {
                 }"""
                 dataStoreManager.cacheData("batch_$index", data)
             }
-            
+
             refreshDataStoreStats()
             _operationStatus.value = "批量写入完成！共写入 10 条数据"
         }
     }
-    
+
     /**
      * 测试并发性能
      */
     fun testConcurrentPerformance() {
         viewModelScope.launch {
             _operationStatus.value = "测试并发性能..."
-            
+
             val jobs = (1..120).map { index ->
                 launch {
                     val data = "concurrent_data_$index"
                     dataStoreManager.cacheData("concurrent_$index", data)
                 }
             }
-            
+
             // 等待所有操作完成
             jobs.forEach { it.join() }
-            
+
             refreshDataStoreStats()
             _operationStatus.value = "并发测试完成！共处理 120 个并发操作"
         }
     }
-    
+
     /**
      * 更新 DataStore 统计信息
      */

@@ -12,9 +12,16 @@ import com.thisfeng.composestudykit.data.model.Banner
 import com.thisfeng.composestudykit.network.ApiResult
 import com.thisfeng.composestudykit.network.BaseRepository
 import com.thisfeng.composestudykit.network.RetrofitClient
+import com.thisfeng.composestudykit.update.VersionCheckRequest
+import com.thisfeng.composestudykit.update.VersionCheckResponse
+import com.thisfeng.composestudykit.update.VersionInfo
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.Flow
+import okhttp3.ResponseBody
+import retrofit2.Response
+import java.io.IOException
 
 /**
  * WanAndroid 数据仓库 - 基于 DataStore 缓存
@@ -30,8 +37,16 @@ class WanAndroidRepository(context: Context) : BaseRepository() {
             .create(WanAndroidApiService::class.java)
     }
 
+    // 为版本更新创建专门的API服务
+    private val versionApiService by lazy {
+        RetrofitClient.createThirdPartyRetrofit("https://cloud.ablegenius.com/")
+            .create(WanAndroidApiService::class.java)
+    }
+
     // Moshi 实例和适配器
-    private val moshi = Moshi.Builder().build()
+    private val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
     private val bannerListAdapter = moshi.adapter<List<Banner>>(
         Types.newParameterizedType(
             List::class.java,
@@ -45,6 +60,9 @@ class WanAndroidRepository(context: Context) : BaseRepository() {
             Article::class.java
         )
     )
+    
+    // 版本检查响应适配器
+    private val versionCheckResponseAdapter = moshi.adapter(VersionCheckResponse::class.java)
 
     /**
      * 获取首页 Banner（带 DataStore 缓存）
@@ -224,6 +242,57 @@ class WanAndroidRepository(context: Context) : BaseRepository() {
      */
     suspend fun getTopArticlesDirectly(): ApiResult<List<Article>> {
         return safeApiCall { apiService.getTopArticles() }
+    }
+
+    /**
+     * 检查版本更新
+     * @param channel 渠道类型
+     * @param company 公司标识
+     * @param serial 设备序列号
+     * @param outlet 门店标识
+     * @return ApiResult<VersionInfo>
+     */
+    suspend fun checkVersion(
+        channel: String = "ANDROID",
+        company: String = "WingFat",
+        serial: String = "W3oqf7L71JG821Q",
+        outlet: String = "6001001"
+    ): ApiResult<VersionInfo> {
+        return safeRawApiCall {
+            val request = VersionCheckRequest(channel, company, serial, outlet)
+            // 使用完整的URL路径
+            val fullUrl = "https://cloud.ablegenius.com/a/api/app/version"
+            val response: Response<ResponseBody> = versionApiService.checkVersion(fullUrl, request)
+            
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                if (responseBody != null) {
+                    try {
+                        val jsonString = responseBody.string()
+                        val versionResponse = versionCheckResponseAdapter.fromJson(jsonString)
+                        
+                        if (versionResponse != null) {
+                            // 检查响应是否成功
+                            if (versionResponse.code == 1 && versionResponse.data != null) {
+                                versionResponse.data
+                            } else {
+                                throw Exception(versionResponse.msg ?: "版本检查失败")
+                            }
+                        } else {
+                            throw Exception("无法解析响应数据")
+                        }
+                    } catch (e: IOException) {
+                        throw Exception("读取响应失败: ${e.message}")
+                    } catch (e: Exception) {
+                        throw Exception("解析响应失败: ${e.message}")
+                    }
+                } else {
+                    throw Exception("响应体为空")
+                }
+            } else {
+                throw Exception("HTTP错误: ${response.code()}")
+            }
+        }
     }
 }
 

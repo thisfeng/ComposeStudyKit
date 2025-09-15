@@ -9,6 +9,12 @@ import androidx.navigation.compose.rememberNavController
 import com.thisfeng.composestudykit.ui.screen.main.MainScreen
 import com.thisfeng.composestudykit.ui.screen.network.NetworkExamplesScreen
 import com.thisfeng.composestudykit.ui.screen.datastore.GlobalDataStoreScreen
+import com.thisfeng.composestudykit.ui.screen.network.RealApiScreen
+import com.thisfeng.composestudykit.ui.screen.datastore.DataStoreComparisonScreen
+import com.thisfeng.composestudykit.ui.screen.network.NoCacheApiScreen
+import com.thisfeng.composestudykit.ui.screen.network.FileOperationScreen
+import com.thisfeng.composestudykit.update.UpdateScreen
+import com.thisfeng.composestudykit.ui.screen.home.SimpleHomeScreen
 
 /**
  * 应用全局导航图
@@ -40,6 +46,73 @@ fun AppNavGraph(
         // 网络请求示例页面（全屏）
         composable(NavRoutes.NETWORK_EXAMPLES) {
             NetworkExamplesScreen(
+                onNavigateToRealApi = {
+                    navController.navigate(NavRoutes.REAL_API_SCREEN)
+                },
+                onNavigateToDataStoreComparison = {
+                    navController.navigate(NavRoutes.DATASTORE_COMPARISON_SCREEN)
+                },
+                onNavigateToNoCacheApi = {
+                    navController.navigate(NavRoutes.NO_CACHE_API_SCREEN)
+                },
+                onNavigateToFileOperation = {
+                    navController.navigate(NavRoutes.FILE_OPERATION_SCREEN)
+                },
+                onNavigateToUpdate = {
+                    navController.navigate(NavRoutes.UPDATE_SCREEN)
+                },
+                onNavigateToSimpleHome = {
+                    navController.navigate(NavRoutes.SIMPLE_HOME_SCREEN)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        // 网络示例子页面
+        composable(NavRoutes.REAL_API_SCREEN) {
+            RealApiScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(NavRoutes.DATASTORE_COMPARISON_SCREEN) {
+            DataStoreComparisonScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(NavRoutes.NO_CACHE_API_SCREEN) {
+            NoCacheApiScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(NavRoutes.FILE_OPERATION_SCREEN) {
+            FileOperationScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(NavRoutes.UPDATE_SCREEN) {
+            UpdateScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(NavRoutes.SIMPLE_HOME_SCREEN) {
+            SimpleHomeScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }

@@ -14,7 +14,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.thisfeng.composestudykit.navigation.BottomNavItem
 import com.thisfeng.composestudykit.navigation.NavRoutes
-import com.thisfeng.composestudykit.ui.components.BottomNavigationBar
 import com.thisfeng.composestudykit.ui.screen.home.HomeScreen
 import com.thisfeng.composestudykit.ui.screen.explore.TechExploreScreen
 import com.thisfeng.composestudykit.ui.screen.explore.LabExploreScreen

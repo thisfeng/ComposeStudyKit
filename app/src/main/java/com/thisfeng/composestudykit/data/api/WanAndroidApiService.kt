@@ -4,8 +4,14 @@ import com.thisfeng.composestudykit.data.model.Article
 import com.thisfeng.composestudykit.data.model.ArticleList
 import com.thisfeng.composestudykit.data.model.Banner
 import com.thisfeng.composestudykit.network.ApiResponse
+import com.thisfeng.composestudykit.update.VersionCheckRequest
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Url
 
 /**
  * WanAndroid API 接口定义
@@ -44,4 +50,12 @@ interface WanAndroidApiService {
      */
     @GET("article/listproject/{page}/json")
     suspend fun getProjects(@Path("page") page: Int): ApiResponse<ArticleList>
+    
+    /**
+     * 检查版本更新 (POST请求)
+     * @param url 完整的URL路径
+     * @param request 请求体参数
+     */
+    @POST
+    suspend fun checkVersion(@Url url: String, @Body request: VersionCheckRequest): Response<ResponseBody>
 }

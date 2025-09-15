@@ -19,6 +19,14 @@ object NavRoutes {
     const val NETWORK_EXAMPLES = "network_examples"
     const val DATASTORE_EXAMPLE = "datastore_example"
     
+    // 网络示例子页面路由
+    const val REAL_API_SCREEN = "real_api_screen"
+    const val DATASTORE_COMPARISON_SCREEN = "datastore_comparison_screen"
+    const val NO_CACHE_API_SCREEN = "no_cache_api_screen"
+    const val FILE_OPERATION_SCREEN = "file_operation_screen"
+    const val UPDATE_SCREEN = "update_screen"
+    const val SIMPLE_HOME_SCREEN = "simple_home_screen"
+    
     // 带参数的路由示例
     object NetworkDetail {
         const val ROUTE = "network_detail"

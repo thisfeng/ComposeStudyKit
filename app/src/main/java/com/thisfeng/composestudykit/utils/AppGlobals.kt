@@ -1,6 +1,7 @@
 package com.thisfeng.composestudykit.utils
 
 import android.app.Application
+import android.content.Context
 
 /**
  * 全局 Application 获取工具类
@@ -38,6 +39,12 @@ object AppGlobals {
         }
         return application!!
     }
+    
+    /**
+     * 获取全局 Application Context
+     */
+    val applicationContext: Context
+        get() = getApplication().applicationContext
     
     /**
      * 清空缓存的 Application 实例（主要用于测试）

@@ -3,11 +3,15 @@ package com.thisfeng.composestudykit.ui.screen.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thisfeng.composestudykit.network.ApiResult
@@ -20,17 +24,38 @@ import com.thisfeng.composestudykit.ui.viewmodel.SimpleHomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleHomeScreen(
-    viewModel: SimpleHomeViewModel = viewModel()
+    onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val viewModel: SimpleHomeViewModel = viewModel()
     val bannerState by viewModel.bannerState.collectAsState()
     val articleState by viewModel.articleState.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // 顶部标题栏
+        TopAppBar(
+            title = { 
+                Text(
+                    text = "基础框架演示",
+                    fontWeight = FontWeight.Bold
+                ) 
+            },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "返回"
+                    )
+                }
+            }
+        )
+        
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
         // 标题
         Text(
             text = "网络请求框架演示",
@@ -85,8 +110,8 @@ fun SimpleHomeScreen(
                             Text("加载中...")
                         }
                     }
-                    is ApiResult.Success -> {
-                        val successBanner = bannerState as ApiResult.Success<String>
+                    is ApiResult.Success<*> -> {
+                        val successBanner = bannerState as ApiResult.Success<*>
                         Text("成功！数据: ${successBanner.data}")
                         if (successBanner.msg.isNotEmpty()) {
                             Text(
@@ -136,8 +161,8 @@ fun SimpleHomeScreen(
                             Text("加载中...")
                         }
                     }
-                    is ApiResult.Success -> {
-                        val successArticle = articleState as ApiResult.Success<String>
+                    is ApiResult.Success<*> -> {
+                        val successArticle = articleState as ApiResult.Success<*>
                         Text("成功！数据: ${successArticle.data}")
                         if (successArticle.msg.isNotEmpty()) {
                             Text(
@@ -195,5 +220,15 @@ fun SimpleHomeScreen(
                 )
             }
         }
+        }
     }
+}
+
+// 添加 Preview
+@Preview(showBackground = true)
+@Composable
+private fun SimpleHomeScreenPreview() {
+    SimpleHomeScreen(
+        onBackClick = {}
+    )
 }

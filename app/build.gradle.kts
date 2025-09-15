@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation(libs.protobuf.kotlin.lite)
     
+    // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -86,4 +87,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    
+    // Unit test dependencies
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 }

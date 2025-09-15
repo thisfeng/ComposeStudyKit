@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许所有HTTPS连接 -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">cloud.ablegenius.com</domain>
+    </domain-config>
+    
+    <!-- 允许调试模式下的明文流量 -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- 信任用户添加的CA证书 -->
+            <certificates src="user" />
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
+    
+    <!-- 允许所有域的HTTPS流量 -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -20,6 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.thisfeng.composestudykit.utils.GlobalDataStore
+import com.thisfeng.composestudykit.utils.ConfigKeys
+import kotlinx.coroutines.launch
 
 /**
  * 设定页面
@@ -30,9 +34,22 @@ fun SettingsScreen(
     onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
     var isDarkMode by remember { mutableStateOf(false) }
     var notificationsEnabled by remember { mutableStateOf(true) }
     var autoSync by remember { mutableStateOf(true) }
+    var themeMode by remember { mutableStateOf("auto") } // "light", "dark", "auto"
+    var showThemeDialog by remember { mutableStateOf(false) }
+    
+    // 初始化主题模式
+    LaunchedEffect(Unit) {
+        themeMode = GlobalDataStore.getString(ConfigKeys.THEME_MODE, "auto")
+        isDarkMode = when (themeMode) {
+            "dark" -> true
+            "light" -> false
+            else -> false // auto mode
+        }
+    }
     
     LazyColumn(
         modifier = modifier
@@ -51,12 +68,15 @@ fun SettingsScreen(
             SettingsSection(
                 title = "系统设置",
                 items = listOf(
-                    SettingsItem.Switch(
+                    SettingsItem.Action(
                         icon = Icons.Outlined.DarkMode,
-                        title = "深色模式",
-                        subtitle = "切换应用主题",
-                        checked = isDarkMode,
-                        onCheckedChange = { isDarkMode = it }
+                        title = "主题模式",
+                        subtitle = when (themeMode) {
+                            "light" -> "浅色主题"
+                            "dark" -> "深色主题"
+                            else -> "跟随系统"
+                        },
+                        onClick = { showThemeDialog = true }
                     ),
                     SettingsItem.Switch(
                         icon = Icons.Default.Notifications,
@@ -128,6 +148,119 @@ fun SettingsScreen(
                     )
                 )
             )
+        }
+    }
+    
+    // 主题选择对话框
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            currentTheme = themeMode,
+            onThemeSelected = { newTheme ->
+                themeMode = newTheme
+                scope.launch {
+                    GlobalDataStore.putString(ConfigKeys.THEME_MODE, newTheme)
+                }
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false }
+        )
+    }
+}
+
+/**
+ * 主题选择对话框
+ */
+@Composable
+fun ThemeSelectionDialog(
+    currentTheme: String,
+    onThemeSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .width(280.dp)
+            ) {
+                Text(
+                    text = "选择主题",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                // 跟随系统选项
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeSelected("auto") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = currentTheme == "auto",
+                        onClick = { onThemeSelected("auto") }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "跟随系统",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                
+                // 浅色主题选项
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeSelected("light") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = currentTheme == "light",
+                        onClick = { onThemeSelected("light") }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "浅色主题",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                
+                // 深色主题选项
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeSelected("dark") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = currentTheme == "dark",
+                        onClick = { onThemeSelected("dark") }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "深色主题",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // 取消按钮
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("取消")
+                }
+            }
         }
     }
 }

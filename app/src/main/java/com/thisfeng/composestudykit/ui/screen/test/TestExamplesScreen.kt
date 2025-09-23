@@ -1,4 +1,4 @@
-package com.thisfeng.composestudykit.ui.screen.network
+package com.thisfeng.composestudykit.ui.screen.test
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,38 +25,33 @@ import androidx.compose.ui.unit.dp
 import com.thisfeng.composestudykit.navigation.NavRoutes
 
 /**
- * 网络请求案例导航界面
- * 包含所有网络相关的测试案例
+
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkExamplesScreen(
-    onNavigateToRealApi: () -> Unit,
-    onNavigateToDataStoreComparison: () -> Unit,
-    onNavigateToNoCacheApi: () -> Unit,
-    onNavigateToFileOperation: () -> Unit,
-    onNavigateToUpdate: () -> Unit,
-    onNavigateToSimpleHome: () -> Unit,
+fun TestExamplesScreen(
+    onNavigateToPermission: () -> Unit,
+
     onBackClick: () -> Unit
 ) {
     // 屏幕列表数据
     val screenItems = listOf(
-        ScreenItem("真实API", "调用 WanAndroid 真实 API 接口", Icons.Default.NetworkPing, NavRoutes.REAL_API_SCREEN),
-        ScreenItem("DataStore", "DataStore 与 SharedPreferences 对比", Icons.Default.DataObject, NavRoutes.DATASTORE_COMPARISON_SCREEN),
-        ScreenItem("并发测试", "网络并发请求性能测试", Icons.Default.Speed, NavRoutes.NO_CACHE_API_SCREEN),
-        ScreenItem("文件操作", "文件上传下载功能演示", Icons.Default.FileUpload, NavRoutes.FILE_OPERATION_SCREEN),
-        ScreenItem("版本更新", "APK版本检查与下载更新", Icons.Default.Update, NavRoutes.UPDATE_SCREEN),
-        ScreenItem("基础框架", "网络框架基础功能演示", Icons.Default.Home, NavRoutes.SIMPLE_HOME_SCREEN)
+        ScreenItem(
+            "XXPermission 权限请求使用",
+            "",
+            Icons.Default.NetworkPing,
+            NavRoutes.TEST_PERMISSION
+        ),
     )
-    
+
     Column(modifier = Modifier.fillMaxSize()) {
         // 顶部标题栏
         TopAppBar(
-            title = { 
+            title = {
                 Text(
-                    text = "🌐 网络请求案例",
+                    text = "🌐 其它测试",
                     fontWeight = FontWeight.Bold
-                ) 
+                )
             },
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
@@ -67,7 +62,7 @@ fun NetworkExamplesScreen(
                 }
             }
         )
-        
+
         // 可滚动的屏幕列表
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -79,12 +74,8 @@ fun NetworkExamplesScreen(
                     item = item,
                     onClick = {
                         when (item.route) {
-                            NavRoutes.REAL_API_SCREEN -> onNavigateToRealApi()
-                            NavRoutes.DATASTORE_COMPARISON_SCREEN -> onNavigateToDataStoreComparison()
-                            NavRoutes.NO_CACHE_API_SCREEN -> onNavigateToNoCacheApi()
-                            NavRoutes.FILE_OPERATION_SCREEN -> onNavigateToFileOperation()
-                            NavRoutes.UPDATE_SCREEN -> onNavigateToUpdate()
-                            NavRoutes.SIMPLE_HOME_SCREEN -> onNavigateToSimpleHome()
+                            NavRoutes.TEST_PERMISSION -> onNavigateToPermission()
+
                         }
                     }
                 )
@@ -123,14 +114,9 @@ fun ScreenCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp)
-            )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -139,21 +125,17 @@ fun ScreenCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 Text(
                     text = item.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
-            Icon(
-                imageVector = Icons.Default.Folder,
-                contentDescription = "进入",
-                modifier = Modifier.size(24.dp)
-            )
+
+
         }
     }
 }
@@ -161,14 +143,10 @@ fun ScreenCard(
 // 添加 Preview
 @Preview(showBackground = true)
 @Composable
-private fun NetworkExamplesScreenPreview() {
-    NetworkExamplesScreen(
-        onNavigateToRealApi = {},
-        onNavigateToDataStoreComparison = {},
-        onNavigateToNoCacheApi = {},
-        onNavigateToFileOperation = {},
-        onNavigateToUpdate = {},
-        onNavigateToSimpleHome = {},
+private fun TestExamplesScreenPreview() {
+    TestExamplesScreen(
+        onNavigateToPermission = {},
+
         onBackClick = {}
     )
 }

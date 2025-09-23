@@ -26,11 +26,12 @@ import com.thisfeng.composestudykit.ui.screen.settings.SettingsScreen
 @Composable
 fun MainScreen(
     onNavigateToNetworkExamples: () -> Unit,
+    onNavigateToTestExamples: () -> Unit,
     onNavigateToDataStoreExample: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
-    
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
@@ -40,6 +41,7 @@ fun MainScreen(
         MainNavHost(
             navController = navController,
             onNavigateToNetworkExamples = onNavigateToNetworkExamples,
+            onNavigateToTestExamples = onNavigateToTestExamples,
             onNavigateToDataStoreExample = onNavigateToDataStoreExample,
             modifier = Modifier.padding(innerPadding)
         )
@@ -54,6 +56,7 @@ fun MainScreen(
 private fun MainNavHost(
     navController: NavHostController,
     onNavigateToNetworkExamples: () -> Unit,
+    onNavigateToTestExamples: () -> Unit,
     onNavigateToDataStoreExample: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -66,10 +69,11 @@ private fun MainNavHost(
         composable(NavRoutes.HOME) {
             HomeScreen(
                 onNavigateToNetworkExamples = onNavigateToNetworkExamples,
+                onNavigateToTestExamples = onNavigateToTestExamples,
                 onNavigateToDataStoreExample = onNavigateToDataStoreExample
             )
         }
-        
+
         // 新技术探索页面
         composable(NavRoutes.TECH_EXPLORE) {
             TechExploreScreen(
@@ -78,7 +82,7 @@ private fun MainNavHost(
                 }
             )
         }
-        
+
         // 实验室页面
         composable(NavRoutes.LAB_EXPLORE) {
             LabExploreScreen(
@@ -87,7 +91,7 @@ private fun MainNavHost(
                 }
             )
         }
-        
+
         // 设定页面
         composable(NavRoutes.SETTINGS) {
             SettingsScreen()
@@ -106,13 +110,13 @@ private fun MainBottomNavigationBar(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    
+
     NavigationBar(modifier = modifier) {
         BottomNavItem.values().forEach { item ->
-            val isSelected = currentDestination?.hierarchy?.any { 
-                it.route == item.route 
+            val isSelected = currentDestination?.hierarchy?.any {
+                it.route == item.route
             } == true
-            
+
             NavigationBarItem(
                 icon = {
                     Text(

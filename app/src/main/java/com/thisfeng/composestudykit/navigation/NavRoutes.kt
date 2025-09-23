@@ -17,8 +17,9 @@ object NavRoutes {
     
     // 全屏子页面路由（独立页面，无底部导航栏）
     const val NETWORK_EXAMPLES = "network_examples"
+    const val TEST_EXAMPLE = "test_example"
     const val DATASTORE_EXAMPLE = "datastore_example"
-    
+
     // 网络示例子页面路由
     const val REAL_API_SCREEN = "real_api_screen"
     const val DATASTORE_COMPARISON_SCREEN = "datastore_comparison_screen"
@@ -26,6 +27,11 @@ object NavRoutes {
     const val FILE_OPERATION_SCREEN = "file_operation_screen"
     const val UPDATE_SCREEN = "update_screen"
     const val SIMPLE_HOME_SCREEN = "simple_home_screen"
+
+    //测试页面 子页面路由器。
+    const val TEST_PERMISSION = "test_permission"
+
+
     
     // 带参数的路由示例
     object NetworkDetail {

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     onNavigateToNetworkExamples: () -> Unit,
+    onNavigateToTestExamples: () -> Unit,
     onNavigateToDataStoreExample: () -> Unit
 ) {
     Column(
@@ -101,6 +102,20 @@ fun HomeScreen(
                 )
             ),
             onExploreClick = onNavigateToNetworkExamples
+        )
+
+        // 其它功能案例
+        ExampleCategoryCard(
+            title = "🌐 其它功能测试",
+            description = "功能测试",
+            examples = listOf(
+                ExampleItem(
+                    icon = Icons.Default.Settings,
+                    title = "功能调用",
+                    description = "测试"
+                )
+            ),
+            onExploreClick = onNavigateToTestExamples
         )
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -16,6 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // 添加jitpack仓库以支持XXPermissions
+        maven { url = uri("https://jitpack.io") }
+
     }
 }
 

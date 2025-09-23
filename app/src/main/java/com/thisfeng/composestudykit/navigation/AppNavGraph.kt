@@ -15,6 +15,8 @@ import com.thisfeng.composestudykit.ui.screen.network.NoCacheApiScreen
 import com.thisfeng.composestudykit.ui.screen.network.FileOperationScreen
 import com.thisfeng.composestudykit.update.UpdateScreen
 import com.thisfeng.composestudykit.ui.screen.home.SimpleHomeScreen
+import com.thisfeng.composestudykit.ui.screen.test.CameraPermissionScreen
+import com.thisfeng.composestudykit.ui.screen.test.TestExamplesScreen
 
 /**
  * 应用全局导航图
@@ -37,12 +39,15 @@ fun AppNavGraph(
                 onNavigateToNetworkExamples = {
                     navController.navigate(NavRoutes.NETWORK_EXAMPLES)
                 },
+                onNavigateToTestExamples = {
+                    navController.navigate(NavRoutes.TEST_EXAMPLE)
+                },
                 onNavigateToDataStoreExample = {
                     navController.navigate(NavRoutes.DATASTORE_EXAMPLE)
                 }
             )
         }
-        
+
         // 网络请求示例页面（全屏）
         composable(NavRoutes.NETWORK_EXAMPLES) {
             NetworkExamplesScreen(
@@ -69,7 +74,31 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
+        // 测试示例页面（预留）
+        composable(NavRoutes.TEST_EXAMPLE) {
+            TestExamplesScreen(
+                onNavigateToPermission = {
+                    navController.navigate(NavRoutes.TEST_PERMISSION)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+
+        }
+
+        // 测试权限页面（预留）
+        composable(NavRoutes.TEST_PERMISSION) {
+            // TODO: 创建权限页面
+            CameraPermissionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
         // 网络示例子页面
         composable(NavRoutes.REAL_API_SCREEN) {
             RealApiScreen(
@@ -78,7 +107,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(NavRoutes.DATASTORE_COMPARISON_SCREEN) {
             DataStoreComparisonScreen(
                 onBackClick = {
@@ -86,7 +115,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(NavRoutes.NO_CACHE_API_SCREEN) {
             NoCacheApiScreen(
                 onBackClick = {
@@ -94,7 +123,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(NavRoutes.FILE_OPERATION_SCREEN) {
             FileOperationScreen(
                 onBackClick = {
@@ -102,7 +131,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(NavRoutes.UPDATE_SCREEN) {
             UpdateScreen(
                 onBackClick = {
@@ -110,7 +139,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(NavRoutes.SIMPLE_HOME_SCREEN) {
             SimpleHomeScreen(
                 onBackClick = {
@@ -118,7 +147,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         // DataStore 示例页面（全屏）
         composable(NavRoutes.DATASTORE_EXAMPLE) {
             GlobalDataStoreScreen(
@@ -127,7 +156,7 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         // 带参数的路由示例（预留）
         composable(NavRoutes.NetworkDetail.ROUTE_WITH_ARGS) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type") ?: ""

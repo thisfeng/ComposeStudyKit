@@ -61,10 +61,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     
-    // Hilt
+  /*  // Hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
-    ksp(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)*/
     
     // Network
     implementation(libs.retrofit)
@@ -92,4 +92,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    // 权限请求框架：https://github.com/getActivity/XXPermissions
+    implementation(libs.xxpermissions)
 }
